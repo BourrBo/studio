@@ -1,3 +1,4 @@
+
 // src/components/cryptkeeper/CryptKeeperForm.tsx
 "use client";
 
@@ -61,15 +62,19 @@ export default function CryptKeeperForm() {
         resultBuffer = await encryptData(arrayBuffer, password);
         outputFileName = `${file.name}.cptk`;
         setOperationSuccess(`File "${file.name}" encrypted successfully as "${outputFileName}".`);
-      } else {
+      } else { // operationType === 'decrypt'
         resultBuffer = await decryptData(arrayBuffer, password);
-        // Attempt to create a more user-friendly decrypted filename
         if (file.name.toLowerCase().endsWith('.cptk')) {
-          outputFileName = file.name.slice(0, -5) + ".decrypted";
+          outputFileName = file.name.slice(0, -5); // Remove .cptk to restore original name
+          if (outputFileName === "") { // Edge case: file was just ".cptk"
+            outputFileName = "decrypted_file"; 
+          }
         } else {
-          outputFileName = `${file.name}.decrypted`;
+          // Fallback if a non-.cptk file is somehow attempted to be decrypted
+          // This case is unlikely if users only select .cptk files for decryption
+          outputFileName = `${file.name}.decrypted_original_unknown`;
         }
-        setOperationSuccess(`File "${file.name}" decrypted successfully as "${outputFileName}".`);
+        setOperationSuccess(`File "${file.name}" decrypted successfully. The downloaded file is named "${outputFileName}".`);
       }
 
       if (resultBuffer) {
