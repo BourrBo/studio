@@ -2,7 +2,7 @@
 // src/components/cryptkeeper/CryptKeeperForm.tsx
 "use client";
 
-import React, { useState, useRef, ChangeEvent } from 'react';
+import React, { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,9 +23,15 @@ export default function CryptKeeperForm() {
   const [aiSuggestion, setAiSuggestion] = useState<AIKeyHardeningOutput | null>(null);
   const [operationError, setOperationError] = useState<string | null>(null);
   const [operationSuccess, setOperationSuccess] = useState<string | null>(null);
+  const [currentYear, setCurrentYear] = useState<number | null>(null);
+
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -258,7 +264,7 @@ export default function CryptKeeperForm() {
       </Card>
       
       <footer className="text-center text-sm text-muted-foreground mt-12">
-        <p>&copy; {new Date().getFullYear()} CryptKeeper. Secure your digital world.</p>
+        <p>&copy; {currentYear} CryptKeeper. Secure your digital world.</p>
       </footer>
     </div>
   );
