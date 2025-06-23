@@ -1,4 +1,3 @@
-
 // src/components/cryptkeeper/CryptKeeperForm.tsx
 "use client";
 
@@ -15,6 +14,7 @@ import { aiKeyHardening, type AIKeyHardeningOutput } from '@/ai/flows/ai-key-har
 import { UploadCloud, Lock, Unlock, Wand2, Copy, Loader2, FileText, AlertCircle, CheckCircle2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CloudStorage from './CloudStorage';
+import FileIntegrityChecker from './FileIntegrityChecker';
 
 const compareArrayBuffers = (buf1: ArrayBuffer, buf2: ArrayBuffer): boolean => {
   if (buf1.byteLength !== buf2.byteLength) return false;
@@ -226,7 +226,7 @@ export default function CryptKeeperForm() {
     <div className="container mx-auto p-4 md:p-8 max-w-3xl space-y-8">
       <header className="text-center space-y-2">
         <h1 className="text-5xl font-extrabold tracking-tight">
-          Secure File Operations
+          CryptKeeper
         </h1>
         <p className="text-muted-foreground">
           Welcome to the File Encryptor & Decryptor. <br />
@@ -382,6 +382,8 @@ export default function CryptKeeperForm() {
         </CardContent>
       </Card>
       
+      <FileIntegrityChecker />
+
       <footer className="text-center text-sm text-muted-foreground mt-12">
         <p>&copy; {currentYear} CryptKeeper. Secure your digital world.</p>
       </footer>
