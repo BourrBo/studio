@@ -73,7 +73,7 @@ export default function CryptKeeperForm() {
         if (file.name.toLowerCase().endsWith('.cptk')) {
           outputFileName = file.name.slice(0, -5); // Remove .cptk to restore original name
           if (outputFileName === "") { // Edge case: file was just ".cptk"
-            outputFileName = "decrypted_file"; 
+            outputFileName = "decrypted_file";
           }
         } else {
           // Fallback if a non-.cptk file is somehow attempted to be decrypted
@@ -146,7 +146,7 @@ export default function CryptKeeperForm() {
     <div className="container mx-auto p-4 md:p-8 max-w-3xl space-y-8">
       <header className="text-center space-y-2">
         <div className="flex items-center justify-center space-x-3">
-          <LogoIcon size={48} className="text-primary" />
+          <LogoIcon size={48} className="text-primary" suppressHydrationWarning />
           <h1 className="text-4xl font-bold tracking-tight">CryptKeeper</h1>
         </div>
         <p className="text-muted-foreground text-lg">
@@ -177,11 +177,11 @@ export default function CryptKeeperForm() {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="file-upload" className="text-base">Select File</Label>
-            <Input 
-              id="file-upload" 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleFileChange} 
+            <Input
+              id="file-upload"
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
               className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
             />
             {file && (
@@ -192,31 +192,31 @@ export default function CryptKeeperForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="password" className="text-base">Password</Label>
-            <Input 
-              id="password" 
-              type="password" 
-              value={password} 
+            <Input
+              id="password"
+              type="password"
+              value={password}
               onChange={(e) => { setPassword(e.target.value); resetStatus(); }}
               placeholder="Enter your secret password"
-              className="text-base" 
+              className="text-base"
             />
           </div>
           <PasswordStrengthMeter password={password} />
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row justify-between gap-4">
-          <Button 
-            onClick={() => handleOperation('encrypt')} 
-            disabled={isLoading || !file} 
+          <Button
+            onClick={() => handleOperation('encrypt')}
+            disabled={isLoading || !file}
             className="w-full sm:w-auto text-base py-3 px-6"
             size="lg"
           >
             {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" suppressHydrationWarning /> : <Lock className="mr-2 h-5 w-5" suppressHydrationWarning />}
             Encrypt File
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => handleOperation('decrypt')} 
-            disabled={isLoading || !file} 
+          <Button
+            variant="outline"
+            onClick={() => handleOperation('decrypt')}
+            disabled={isLoading || !file}
             className="w-full sm:w-auto text-base py-3 px-6"
             size="lg"
           >
@@ -232,9 +232,9 @@ export default function CryptKeeperForm() {
           <CardDescription>Strengthen your password with an AI-generated memorable key.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button 
-            variant="secondary" 
-            onClick={handleAiHardenPassword} 
+          <Button
+            variant="secondary"
+            onClick={handleAiHardenPassword}
             disabled={isAiLoading || !password}
             className="w-full text-base py-3 px-6"
             size="lg"
