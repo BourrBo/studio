@@ -1,3 +1,4 @@
+
 // src/components/cryptkeeper/CryptKeeperForm.tsx
 "use client";
 
@@ -13,7 +14,7 @@ import PasswordStrengthMeter from './PasswordStrengthMeter';
 import { aiKeyHardening, type AIKeyHardeningOutput } from '@/ai/flows/ai-key-hardening';
 import { UploadCloud, Lock, Unlock, Wand2, Copy, Loader2, FileText, AlertCircle, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { LogoIcon } from '../icons/LogoIcon';
+import CloudStorage from './CloudStorage';
 
 export default function CryptKeeperForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -25,6 +26,7 @@ export default function CryptKeeperForm() {
   const [operationError, setOperationError] = useState<string | null>(null);
   const [operationSuccess, setOperationSuccess] = useState<string | null>(null);
   const [currentYear, setCurrentYear] = useState<number | null>(null);
+  const [encryptedBlob, setEncryptedBlob] = useState<Blob | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -36,6 +38,7 @@ export default function CryptKeeperForm() {
   const handleFileSelect = (selectedFile: File | null) => {
     if (selectedFile) {
         setFile(selectedFile);
+        setEncryptedBlob(null);
         resetStatus();
     }
   };
@@ -100,6 +103,9 @@ export default function CryptKeeperForm() {
       
       if (resultBuffer) {
         const blob = new Blob([resultBuffer]);
+        if (operationType === 'encrypt') {
+            setEncryptedBlob(blob);
+        }
         
         // Use a fallback method that works in all environments, including iframes
         const url = URL.createObjectURL(blob);
@@ -158,6 +164,20 @@ export default function CryptKeeperForm() {
       .catch(() => toast({ title: "Copy Failed", description: "Could not copy key.", variant: "destructive" }));
   };
 
+  const getEncryptedBlob = () => {
+    if (!encryptedBlob) {
+        toast({ title: "No file encrypted", description: "Please encrypt a file first before uploading.", variant: "destructive" });
+        return null;
+    }
+    return encryptedBlob;
+  }
+  
+  const handleCloudFileSelect = (cloudFile: File) => {
+    handleFileSelect(cloudFile);
+    toast({ title: "File Loaded", description: `${cloudFile.name} is ready for decryption.` });
+  };
+
+
   return (
     <div className="container mx-auto p-4 md:p-8 max-w-3xl space-y-8">
       <header className="text-center space-y-2">
@@ -187,8 +207,8 @@ export default function CryptKeeperForm() {
 
       <Card className="shadow-2xl shadow-primary/10">
         <CardHeader>
-          <CardTitle className="text-2xl">File Operation</CardTitle>
-          <CardDescription>Select a file and enter a password to get started.</CardDescription>
+          <CardTitle className="text-2xl">Local File Operation</CardTitle>
+          <CardDescription>Select a local file and enter a password to get started.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
@@ -254,6 +274,8 @@ export default function CryptKeeperForm() {
           </Button>
         </CardFooter>
       </Card>
+      
+      <CloudStorage onFileSelect={handleCloudFileSelect} getEncryptedBlob={getEncryptedBlob} file={file} />
 
       <Card className="shadow-2xl shadow-primary/10">
         <CardHeader>
@@ -278,7 +300,7 @@ export default function CryptKeeperForm() {
                 <div className="flex items-center space-x-2 mt-1">
                   <p className="font-mono text-sm p-2 bg-background rounded-md flex-grow break-all">{aiSuggestion.enhancedKey}</p>
 
-                  <Button variant="ghost" size="icon" onClick={() => copyToClipboard(aiSuggestion.enhancedKey)}>
+                  <Button variant="ghost" size="icon" onClick={() => copyToClipboard(aiSuggestion.enhancedKey)} suppressHydrationWarning>
                     <Copy className="h-4 w-4" suppressHydrationWarning />
                   </Button>
                 </div>
