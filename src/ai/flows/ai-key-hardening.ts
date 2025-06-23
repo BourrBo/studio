@@ -48,9 +48,19 @@ const aiKeyHardeningPrompt = ai.definePrompt({
   name: 'aiKeyHardeningPrompt',
   input: {schema: AIKeyHardeningInputSchema},
   output: {schema: AIKeyHardeningOutputSchema},
-  prompt: `You are an AI-powered password generator. You will take a user-provided password and generate a new, stronger password based on it. The password should be easy to remember but difficult to crack. Please provide a strength report of the generated password.
+  prompt: `You are a senior cybersecurity expert specializing in creating memorable yet highly secure passphrases. Your goal is to take a user's base password and transform it into a significantly stronger, memorable passphrase.
 
-User-provided password: {{{password}}}
+**Instructions:**
+1.  **Generate a Memorable Passphrase**: Create a passphrase using the diceware concept (e.g., 4-5 uncommon but real words joined together). Capitalize at least one word.
+2.  **Add Complexity**: Append a two-digit number and one special character (e.g., !, @, #, $, %) to the end of the passphrase.
+3.  **Create a Strength Report**: In markdown format, explain:
+    *   **Length**: The benefit of the new passphrase's length.
+    *   **Composition**: The strength added by the mix of uppercase/lowercase letters, words, numbers, and symbols.
+    *   **Memorability**: Why using words makes it easier to remember.
+    *   **Overall Assessment**: A concluding summary of its strength (e.g., "Excellent", "Very Strong").
+
+**Your Task:**
+Now, generate a new key and report for the user's password: {{{password}}}
 `,
 });
 
@@ -66,4 +76,3 @@ const aiKeyHardeningFlow = ai.defineFlow(
     return output!;
   }
 );
-
