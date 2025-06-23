@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'CryptKeeper - Secure File Encryption',
-  description: 'Encrypt and decrypt your files securely with CryptKeeper.',
+  title: 'CryptKeeper',
+  description: 'Your personal file encryption vault.',
 };
 
 export default function RootLayout({

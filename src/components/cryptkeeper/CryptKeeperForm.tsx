@@ -180,14 +180,13 @@ export default function CryptKeeperForm() {
 
   return (
     <div className="container mx-auto p-4 md:p-8 max-w-3xl space-y-8">
-      <header className="text-center space-y-2">
-        <div className="flex items-center justify-center space-x-3">
-          <ShieldCheck size={48} className="text-primary" suppressHydrationWarning />
-          <h1 className="text-4xl font-bold tracking-tight">CryptKeeper</h1>
+      <header className="text-center">
+        <div className="flex items-center justify-center space-x-4">
+          <ShieldCheck size={52} className="text-primary" suppressHydrationWarning />
+          <h1 className="text-5xl font-extrabold tracking-tight">
+            CryptKeeper
+          </h1>
         </div>
-        <p className="text-muted-foreground text-lg">
-          Securely encrypt and decrypt your files with client-side power.
-        </p>
       </header>
       
       {operationError && (
