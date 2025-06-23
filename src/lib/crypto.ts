@@ -1,8 +1,6 @@
 // src/lib/crypto.ts
 "use client";
 
-import pako from 'pako';
-
 const SALT_LENGTH_BYTES = 16;
 const IV_LENGTH_BYTES = 12; // Recommended for AES-GCM
 const PBKDF2_ITERATIONS = 250000; // Increased iterations for better security
@@ -35,6 +33,7 @@ async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey>
 
 export async function encryptData(data: ArrayBuffer, password: string): Promise<ArrayBuffer | null> {
   try {
+    const pako = (await import('pako')).default;
     const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH_BYTES));
     const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH_BYTES));
 
@@ -67,6 +66,7 @@ export async function encryptData(data: ArrayBuffer, password: string): Promise<
 
 export async function decryptData(encryptedDataWithSaltAndIv: ArrayBuffer, password: string): Promise<ArrayBuffer | null> {
   try {
+    const pako = (await import('pako')).default;
     const dataView = new Uint8Array(encryptedDataWithSaltAndIv);
 
     const salt = dataView.slice(0, SALT_LENGTH_BYTES);
