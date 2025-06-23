@@ -1,6 +1,8 @@
 // src/lib/crypto.ts
 "use client";
 
+import pako from 'pako';
+
 const SALT_LENGTH_BYTES = 16;
 const IV_LENGTH_BYTES = 12; // Recommended for AES-GCM
 const PBKDF2_ITERATIONS = 250000; // Increased iterations for better security
@@ -36,6 +38,9 @@ export async function encryptData(data: ArrayBuffer, password: string): Promise<
     const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH_BYTES));
     const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH_BYTES));
 
+    // 1. Compress the data before encryption
+    const compressedData = pako.deflate(new Uint8Array(data)).buffer;
+
     const key = await deriveKey(password, salt);
 
     const encryptedData = await crypto.subtle.encrypt(
@@ -44,7 +49,7 @@ export async function encryptData(data: ArrayBuffer, password: string): Promise<
         iv: iv,
       },
       key,
-      data
+      compressedData
     );
 
     // Prepend salt and IV to the encrypted data
@@ -74,7 +79,7 @@ export async function decryptData(encryptedDataWithSaltAndIv: ArrayBuffer, passw
 
     const key = await deriveKey(password, salt);
 
-    const decryptedData = await crypto.subtle.decrypt(
+    const decryptedCompressedData = await crypto.subtle.decrypt(
       {
         name: "AES-GCM",
         iv: iv,
@@ -83,7 +88,10 @@ export async function decryptData(encryptedDataWithSaltAndIv: ArrayBuffer, passw
       ciphertext.buffer
     );
 
-    return decryptedData;
+    // 2. Decompress the data after decryption
+    const originalData = pako.inflate(new Uint8Array(decryptedCompressedData)).buffer;
+
+    return originalData;
   } catch (error) {
     console.error("Decryption failed:", error);
     // Common reason for failure is incorrect password or corrupted data
