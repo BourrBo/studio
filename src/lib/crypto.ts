@@ -1,6 +1,5 @@
 // src/lib/crypto.ts
 "use client";
-import type pako from 'pako';
 
 const SALT_LENGTH_BYTES = 16;
 const IV_LENGTH_BYTES = 12; // Recommended for AES-GCM
@@ -32,12 +31,13 @@ async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey>
   );
 }
 
-export async function encryptData(data: ArrayBuffer, password: string, pakoInstance: typeof pako): Promise<ArrayBuffer> {
+export async function encryptData(data: ArrayBuffer, password: string): Promise<ArrayBuffer> {
+    const pako = (await import('pako')).default;
     const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH_BYTES));
     const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH_BYTES));
 
     // 1. Compress the data before encryption
-    const compressedData = pakoInstance.deflate(new Uint8Array(data)).buffer;
+    const compressedData = pako.deflate(new Uint8Array(data)).buffer;
 
     const key = await deriveKey(password, salt);
 
@@ -59,8 +59,9 @@ export async function encryptData(data: ArrayBuffer, password: string, pakoInsta
     return resultBuffer.buffer;
 }
 
-export async function decryptData(encryptedDataWithSaltAndIv: ArrayBuffer, password: string, pakoInstance: typeof pako): Promise<ArrayBuffer> {
+export async function decryptData(encryptedDataWithSaltAndIv: ArrayBuffer, password: string): Promise<ArrayBuffer> {
   try {
+    const pako = (await import('pako')).default;
     const dataView = new Uint8Array(encryptedDataWithSaltAndIv);
 
     const salt = dataView.slice(0, SALT_LENGTH_BYTES);
@@ -83,7 +84,7 @@ export async function decryptData(encryptedDataWithSaltAndIv: ArrayBuffer, passw
     );
 
     // 2. Decompress the data after decryption
-    const originalData = pakoInstance.inflate(new Uint8Array(decryptedCompressedData)).buffer;
+    const originalData = pako.inflate(new Uint8Array(decryptedCompressedData)).buffer;
 
     return originalData;
   } catch (error) {

@@ -118,24 +118,23 @@ export default function CryptKeeperForm() {
     resetStatus();
 
     try {
-      const pako = (await import('pako')).default;
       const arrayBuffer = await file.arrayBuffer();
       let resultBuffer: ArrayBuffer | null = null;
       let outputFileName: string = '';
 
       if (operationType === 'encrypt') {
-        resultBuffer = await encryptData(arrayBuffer, password, pako);
+        resultBuffer = await encryptData(arrayBuffer, password);
         outputFileName = `${file.name}.cptk`;
         
         // Post-encryption verification to ensure data integrity
-        const decryptedForVerify = await decryptData(resultBuffer, password, pako);
+        const decryptedForVerify = await decryptData(resultBuffer, password);
         if (!compareArrayBuffers(arrayBuffer, decryptedForVerify)) {
             throw new Error("Post-encryption verification failed. Data integrity could not be guaranteed.");
         }
         
         setOperationSuccess(`File "${file.name}" encrypted and compressed successfully as "${outputFileName}".\nVerification passed: No data loss detected.`);
       } else { // operationType === 'decrypt'
-        resultBuffer = await decryptData(arrayBuffer, password, pako);
+        resultBuffer = await decryptData(arrayBuffer, password);
         if (file.name.toLowerCase().endsWith('.cptk')) {
           outputFileName = file.name.slice(0, -5);
         } else {
