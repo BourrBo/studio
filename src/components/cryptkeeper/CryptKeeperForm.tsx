@@ -27,6 +27,8 @@ export default function CryptKeeperForm() {
   const [operationSuccess, setOperationSuccess] = useState<string | null>(null);
   const [currentYear, setCurrentYear] = useState<number | null>(null);
   const [encryptedBlob, setEncryptedBlob] = useState<Blob | null>(null);
+  const [originalSize, setOriginalSize] = useState<number | null>(null);
+  const [processedSize, setProcessedSize] = useState<number | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -34,11 +36,21 @@ export default function CryptKeeperForm() {
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
   }, []);
+
+  const formatBytes = (bytes: number, decimals = 2) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  };
   
   const handleFileSelect = (selectedFile: File | null) => {
     if (selectedFile) {
         setFile(selectedFile);
         setEncryptedBlob(null);
+        setOriginalSize(selectedFile.size);
         resetStatus();
     }
   };
@@ -66,6 +78,7 @@ export default function CryptKeeperForm() {
   const handleRemoveFile = () => {
     setFile(null);
     setEncryptedBlob(null);
+    setOriginalSize(null);
     resetStatus();
     if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -76,6 +89,7 @@ export default function CryptKeeperForm() {
   const resetStatus = () => {
     setOperationError(null);
     setOperationSuccess(null);
+    setProcessedSize(null);
   }
 
   const handleOperation = async (operationType: 'encrypt' | 'decrypt') => {
@@ -116,6 +130,7 @@ export default function CryptKeeperForm() {
         if (operationType === 'encrypt') {
             setEncryptedBlob(blob);
         }
+        setProcessedSize(resultBuffer.byteLength);
         
         // Use a fallback method that works in all environments, including iframes
         const url = URL.createObjectURL(blob);
@@ -211,7 +226,21 @@ export default function CryptKeeperForm() {
          <Alert variant="default" className="animate-in fade-in-50 border-accent/50 text-accent dark:text-accent-foreground">
           <CheckCircle2 className="h-4 w-4 text-accent" suppressHydrationWarning />
           <AlertTitle>Success!</AlertTitle>
-          <AlertDescription>{operationSuccess}</AlertDescription>
+          <AlertDescription>
+            {operationSuccess}
+            {originalSize !== null && processedSize !== null && (
+              <div className="mt-3 text-foreground/80 border-t border-accent/20 pt-2 space-y-1">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-muted-foreground">Original Size:</span>
+                  <span className="font-mono bg-white/10 dark:bg-black/20 px-1.5 py-0.5 rounded-sm">{formatBytes(originalSize)}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-muted-foreground">New Size:</span>
+                  <span className="font-mono bg-white/10 dark:bg-black/20 px-1.5 py-0.5 rounded-sm">{formatBytes(processedSize)}</span>
+                </div>
+              </div>
+            )}
+          </AlertDescription>
         </Alert>
       )}
 
@@ -275,7 +304,7 @@ export default function CryptKeeperForm() {
           <Button
             onClick={() => handleOperation('encrypt')}
             disabled={isLoading || !file || !password}
-            className="w-full sm:w-auto text-base py-3 px-6"
+            className="w-full sm:w-auto transition-transform transform hover:scale-105"
             size="lg"
           >
             {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" suppressHydrationWarning /> : <Lock className="mr-2 h-5 w-5" suppressHydrationWarning />}
@@ -285,7 +314,7 @@ export default function CryptKeeperForm() {
             variant="outline"
             onClick={() => handleOperation('decrypt')}
             disabled={isLoading || !file || !password}
-            className="w-full sm:w-auto text-base py-3 px-6"
+            className="w-full sm:w-auto transition-transform transform hover:scale-105"
             size="lg"
           >
             {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" suppressHydrationWarning /> : <Unlock className="mr-2 h-5 w-5" suppressHydrationWarning />}
