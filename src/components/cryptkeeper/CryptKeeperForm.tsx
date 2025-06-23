@@ -78,7 +78,7 @@ export default function CryptKeeperForm() {
         } else {
           // Fallback if a non-.cptk file is somehow attempted to be decrypted
           // This case is unlikely if users only select .cptk files for decryption
-          outputFileName = `${file.name}.decrypted_original_unknown`;
+          outputFileName = `${file.name}.decrypted`;
         }
         setOperationSuccess(`File "${file.name}" decrypted successfully. The downloaded file is named "${outputFileName}".`);
       }
