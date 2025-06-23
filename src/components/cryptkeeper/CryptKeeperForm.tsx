@@ -156,14 +156,14 @@ export default function CryptKeeperForm() {
 
       {operationError && (
         <Alert variant="destructive" className="animate-in fade-in-50">
-          <AlertCircle className="h-4 w-4" />
+          <AlertCircle className="h-4 w-4" suppressHydrationWarning />
           <AlertTitle>Operation Failed</AlertTitle>
           <AlertDescription>{operationError}</AlertDescription>
         </Alert>
       )}
       {operationSuccess && (
          <Alert variant="default" className="animate-in fade-in-50 bg-green-500/10 border-green-500/50 text-green-700 dark:text-green-400">
-          <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <CheckCircle2 className="h-4 w-4 text-green-500" suppressHydrationWarning />
           <AlertTitle>Success!</AlertTitle>
           <AlertDescription>{operationSuccess}</AlertDescription>
         </Alert>
@@ -186,7 +186,7 @@ export default function CryptKeeperForm() {
             />
             {file && (
               <div className="mt-2 text-sm text-muted-foreground flex items-center">
-                <FileText className="w-4 h-4 mr-2 shrink-0" /> Selected: {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                <FileText className="w-4 h-4 mr-2 shrink-0" suppressHydrationWarning /> Selected: {file.name} ({(file.size / 1024).toFixed(2)} KB)
               </div>
             )}
           </div>
@@ -210,7 +210,7 @@ export default function CryptKeeperForm() {
             className="w-full sm:w-auto text-base py-3 px-6"
             size="lg"
           >
-            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Lock className="mr-2 h-5 w-5" />}
+            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" suppressHydrationWarning /> : <Lock className="mr-2 h-5 w-5" suppressHydrationWarning />}
             Encrypt File
           </Button>
           <Button 
@@ -220,7 +220,7 @@ export default function CryptKeeperForm() {
             className="w-full sm:w-auto text-base py-3 px-6"
             size="lg"
           >
-            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Unlock className="mr-2 h-5 w-5" />}
+            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" suppressHydrationWarning /> : <Unlock className="mr-2 h-5 w-5" suppressHydrationWarning />}
             Decrypt File
           </Button>
         </CardFooter>
@@ -239,7 +239,7 @@ export default function CryptKeeperForm() {
             className="w-full text-base py-3 px-6"
             size="lg"
           >
-            {isAiLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Wand2 className="mr-2 h-5 w-5" />}
+            {isAiLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" suppressHydrationWarning /> : <Wand2 className="mr-2 h-5 w-5" suppressHydrationWarning />}
             Suggest Strong Key
           </Button>
           {aiSuggestion && (
@@ -249,7 +249,7 @@ export default function CryptKeeperForm() {
                 <div className="flex items-center space-x-2 mt-1">
                   <p className="font-mono text-sm p-2 bg-background rounded-md flex-grow break-all">{aiSuggestion.enhancedKey}</p>
                   <Button variant="ghost" size="icon" onClick={() => copyToClipboard(aiSuggestion.enhancedKey)}>
-                    <Copy className="h-4 w-4" />
+                    <Copy className="h-4 w-4" suppressHydrationWarning />
                   </Button>
                 </div>
               </div>
