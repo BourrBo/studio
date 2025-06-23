@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { encryptData, decryptData } from '@/lib/crypto';
 import PasswordStrengthMeter from './PasswordStrengthMeter';
 import { aiKeyHardening, type AIKeyHardeningOutput } from '@/ai/flows/ai-key-hardening';
-import { UploadCloud, Lock, Unlock, Wand2, Copy, Loader2, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { UploadCloud, Lock, Unlock, Wand2, Copy, Loader2, FileText, AlertCircle, CheckCircle2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CloudStorage from './CloudStorage';
 
@@ -61,6 +61,16 @@ export default function CryptKeeperForm() {
     event.preventDefault();
     setIsDragging(false);
     handleFileSelect(event.dataTransfer.files?.[0] || null);
+  };
+
+  const handleRemoveFile = () => {
+    setFile(null);
+    setEncryptedBlob(null);
+    resetStatus();
+    if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+    }
+    toast({ title: "File removed", description: "The selected file has been cleared." });
   };
 
   const resetStatus = () => {
@@ -234,8 +244,17 @@ export default function CryptKeeperForm() {
                 <Input id="file-upload" type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
             </div>
             {file && (
-              <div className="mt-2 text-sm text-muted-foreground flex items-center p-2 rounded-md bg-secondary">
-                <FileText className="w-4 h-4 mr-2 shrink-0" suppressHydrationWarning /> Selected: {file.name} ({(file.size / 1024).toFixed(2)} KB)
+              <div className="mt-2 text-sm text-muted-foreground flex items-center justify-between p-2 pl-3 rounded-md bg-secondary border">
+                <div className="flex items-center min-w-0">
+                  <FileText className="w-4 h-4 mr-2 shrink-0" suppressHydrationWarning />
+                  <span className="truncate">
+                    {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                  </span>
+                </div>
+                <Button variant="ghost" size="icon" onClick={handleRemoveFile} className="h-7 w-7 shrink-0" suppressHydrationWarning>
+                  <X className="h-4 w-4" suppressHydrationWarning />
+                  <span className="sr-only">Remove file</span>
+                </Button>
               </div>
             )}
           </div>
