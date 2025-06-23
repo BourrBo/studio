@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { encryptData, decryptData } from '@/lib/crypto';
 import PasswordStrengthMeter from './PasswordStrengthMeter';
 import { aiKeyHardening, type AIKeyHardeningOutput } from '@/ai/flows/ai-key-hardening';
-import { UploadCloud, Lock, Unlock, Wand2, Copy, Loader2, FileText, AlertCircle, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { UploadCloud, Lock, Unlock, Wand2, Copy, Loader2, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CloudStorage from './CloudStorage';
 
@@ -181,12 +181,9 @@ export default function CryptKeeperForm() {
   return (
     <div className="container mx-auto p-4 md:p-8 max-w-3xl space-y-8">
       <header className="text-center space-y-2">
-        <div className="flex items-center justify-center space-x-4">
-          <ShieldCheck size={52} className="text-primary" suppressHydrationWarning />
-          <h1 className="text-5xl font-extrabold tracking-tight">
-            Secure File Operations
-          </h1>
-        </div>
+        <h1 className="text-5xl font-extrabold tracking-tight">
+          Secure File Operations
+        </h1>
         <p className="text-muted-foreground">
           Welcome to the File Encryptor & Decryptor. <br />
           Encrypt your sensitive data or decrypt your secured files with ease.
