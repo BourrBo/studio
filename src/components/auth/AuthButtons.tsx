@@ -54,7 +54,7 @@ export default function AuthButtons() {
   if (loading) {
     return (
         <Button variant="outline" size="icon" disabled>
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" suppressHydrationWarning />
         </Button>
     )
   }
@@ -72,7 +72,7 @@ export default function AuthButtons() {
             <Avatar className="h-10 w-10">
               <AvatarImage src={user.photoURL ?? ''} alt={user.displayName ?? 'User'} />
               <AvatarFallback>
-                <UserIcon />
+                <UserIcon suppressHydrationWarning />
               </AvatarFallback>
             </Avatar>
           </Button>
@@ -88,7 +88,7 @@ export default function AuthButtons() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" />
+            <LogOut className="mr-2 h-4 w-4" suppressHydrationWarning />
             <span>Log out</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -98,7 +98,7 @@ export default function AuthButtons() {
 
   return (
     <Button onClick={handleSignIn} variant="outline">
-      <LogIn className="mr-2 h-4 w-4" />
+      <LogIn className="mr-2 h-4 w-4" suppressHydrationWarning />
       Sign in
     </Button>
   );
