@@ -13,14 +13,15 @@ type StrengthLevel = {
   label: string;
   value: number;
   colorClass: string;
+  textColorClass: string;
 };
 
 const STRENGTH_LEVELS: StrengthLevel[] = [
-  { label: "Very Weak", value: 0, colorClass: "bg-red-500" },
-  { label: "Weak", value: 25, colorClass: "bg-orange-500" },
-  { label: "Medium", value: 50, colorClass: "bg-yellow-500" },
-  { label: "Strong", value: 75, colorClass: "bg-lime-500" },
-  { label: "Very Strong", value: 100, colorClass: "bg-green-500" },
+  { label: "Very Weak", value: 0, colorClass: "bg-destructive", textColorClass: "text-destructive" },
+  { label: "Weak", value: 25, colorClass: "bg-destructive/70", textColorClass: "text-destructive/90" },
+  { label: "Medium", value: 50, colorClass: "bg-primary/50", textColorClass: "text-primary/90" },
+  { label: "Strong", value: 75, colorClass: "bg-primary", textColorClass: "text-primary" },
+  { label: "Very Strong", value: 100, colorClass: "bg-accent", textColorClass: "text-accent" },
 ];
 
 const calculatePasswordStrength = (password: string): StrengthLevel => {
@@ -29,22 +30,22 @@ const calculatePasswordStrength = (password: string): StrengthLevel => {
 
   // Length
   if (password.length >= 8) score += 25;
-  if (password.length >= 12) score += 15; // Bonus for longer
-  if (password.length >= 16) score += 10; // Bonus for very long
+  if (password.length >= 12) score += 15;
+  if (password.length >= 16) score += 10;
 
   // Character types
   if (/[a-z]/.test(password)) score += 10;
   if (/[A-Z]/.test(password)) score += 15;
   if (/[0-9]/.test(password)) score += 15;
-  if (/[^a-zA-Z0-9]/.test(password)) score += 20; // Symbols
+  if (/[^a-zA-Z0-9]/.test(password)) score += 20;
 
-  score = Math.min(score, 100); // Cap score at 100
+  score = Math.min(score, 100);
 
-  if (score < 25) return STRENGTH_LEVELS[0]; // Very Weak
-  if (score < 50) return STRENGTH_LEVELS[1]; // Weak
-  if (score < 75) return STRENGTH_LEVELS[2]; // Medium
-  if (score < 100) return STRENGTH_LEVELS[3]; // Strong
-  return STRENGTH_LEVELS[4]; // Very Strong
+  if (score < 25) return STRENGTH_LEVELS[0];
+  if (score < 50) return STRENGTH_LEVELS[1];
+  if (score < 75) return STRENGTH_LEVELS[2];
+  if (score < 100) return STRENGTH_LEVELS[3];
+  return STRENGTH_LEVELS[4];
 };
 
 const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({ password = "" }) => {
@@ -53,18 +54,16 @@ const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({ password 
   React.useEffect(() => {
     setStrength(calculatePasswordStrength(password));
   }, [password]);
+  
+  if (!password) {
+    return null;
+  }
 
   return (
-    <div className="space-y-1 w-full">
-      <Progress value={strength.value} className={cn("h-2", strength.colorClass)} />
-      <p className={cn("text-xs font-medium", 
-        strength.value === 0 ? "text-red-500" :
-        strength.value === 25 ? "text-orange-500" :
-        strength.value === 50 ? "text-yellow-500" :
-        strength.value === 75 ? "text-lime-500" :
-        "text-green-500"
-      )}>
-        Strength: {strength.label}
+    <div className="space-y-1 w-full pt-2">
+      <Progress value={strength.value} className="h-2" indicatorClassName={cn("transition-all duration-300", strength.colorClass)} />
+      <p className={cn("text-xs font-medium text-right transition-colors duration-300", strength.textColorClass)}>
+        {strength.label}
       </p>
     </div>
   );

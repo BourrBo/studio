@@ -1,5 +1,6 @@
 // src/lib/crypto.ts
 "use client";
+import type pako from 'pako';
 
 const SALT_LENGTH_BYTES = 16;
 const IV_LENGTH_BYTES = 12; // Recommended for AES-GCM
@@ -31,14 +32,12 @@ async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey>
   );
 }
 
-export async function encryptData(data: ArrayBuffer, password: string): Promise<ArrayBuffer | null> {
-  try {
-    const pako = (await import('pako')).default;
+export async function encryptData(data: ArrayBuffer, password: string, pakoInstance: typeof pako): Promise<ArrayBuffer> {
     const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH_BYTES));
     const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH_BYTES));
 
     // 1. Compress the data before encryption
-    const compressedData = pako.deflate(new Uint8Array(data)).buffer;
+    const compressedData = pakoInstance.deflate(new Uint8Array(data)).buffer;
 
     const key = await deriveKey(password, salt);
 
@@ -58,15 +57,10 @@ export async function encryptData(data: ArrayBuffer, password: string): Promise<
     resultBuffer.set(new Uint8Array(encryptedData), salt.length + iv.length);
 
     return resultBuffer.buffer;
-  } catch (error) {
-    console.error("Encryption failed:", error);
-    return null;
-  }
 }
 
-export async function decryptData(encryptedDataWithSaltAndIv: ArrayBuffer, password: string): Promise<ArrayBuffer | null> {
+export async function decryptData(encryptedDataWithSaltAndIv: ArrayBuffer, password: string, pakoInstance: typeof pako): Promise<ArrayBuffer> {
   try {
-    const pako = (await import('pako')).default;
     const dataView = new Uint8Array(encryptedDataWithSaltAndIv);
 
     const salt = dataView.slice(0, SALT_LENGTH_BYTES);
@@ -89,7 +83,7 @@ export async function decryptData(encryptedDataWithSaltAndIv: ArrayBuffer, passw
     );
 
     // 2. Decompress the data after decryption
-    const originalData = pako.inflate(new Uint8Array(decryptedCompressedData)).buffer;
+    const originalData = pakoInstance.inflate(new Uint8Array(decryptedCompressedData)).buffer;
 
     return originalData;
   } catch (error) {

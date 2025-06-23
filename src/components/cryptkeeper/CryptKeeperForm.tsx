@@ -1,8 +1,7 @@
-
 // src/components/cryptkeeper/CryptKeeperForm.tsx
 "use client";
 
-import React, { useState, useRef, ChangeEvent, useEffect } from 'react';
+import React, { useState, useRef, ChangeEvent, useEffect, DragEvent } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,19 +11,19 @@ import { useToast } from "@/hooks/use-toast";
 import { encryptData, decryptData } from '@/lib/crypto';
 import PasswordStrengthMeter from './PasswordStrengthMeter';
 import { aiKeyHardening, type AIKeyHardeningOutput } from '@/ai/flows/ai-key-hardening';
-import { UploadCloud, DownloadCloud, Lock, Unlock, Wand2, Copy, Loader2, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { LogoIcon } from '../icons/LogoIcon';
+import { UploadCloud, Lock, Unlock, Wand2, Copy, Loader2, FileText, AlertCircle, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function CryptKeeperForm() {
   const [file, setFile] = useState<File | null>(null);
   const [password, setPassword] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
   const [aiSuggestion, setAiSuggestion] = useState<AIKeyHardeningOutput | null>(null);
   const [operationError, setOperationError] = useState<string | null>(null);
   const [operationSuccess, setOperationSuccess] = useState<string | null>(null);
   const [currentYear, setCurrentYear] = useState<number | null>(null);
-
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -32,13 +31,32 @@ export default function CryptKeeperForm() {
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
   }, []);
+  
+  const handleFileSelect = (selectedFile: File | null) => {
+    if (selectedFile) {
+        setFile(selectedFile);
+        resetStatus();
+    }
+  };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setFile(event.target.files[0]);
-      setOperationError(null);
-      setOperationSuccess(null);
-    }
+    handleFileSelect(event.target.files?.[0] || null);
+  };
+  
+  const handleDragEnter = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+  };
+  
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+    handleFileSelect(event.dataTransfer.files?.[0] || null);
   };
 
   const resetStatus = () => {
@@ -60,24 +78,25 @@ export default function CryptKeeperForm() {
     resetStatus();
 
     try {
+      const pako = (await import('pako')).default;
       const arrayBuffer = await file.arrayBuffer();
       let resultBuffer: ArrayBuffer | null = null;
       let outputFileName: string = '';
 
       if (operationType === 'encrypt') {
-        resultBuffer = await encryptData(arrayBuffer, password);
+        resultBuffer = await encryptData(arrayBuffer, password, pako);
         outputFileName = `${file.name}.cptk`;
         setOperationSuccess(`File "${file.name}" encrypted and compressed successfully as "${outputFileName}".`);
       } else { // operationType === 'decrypt'
-        resultBuffer = await decryptData(arrayBuffer, password);
+        resultBuffer = await decryptData(arrayBuffer, password, pako);
         if (file.name.toLowerCase().endsWith('.cptk')) {
           outputFileName = file.name.slice(0, -5);
         } else {
           outputFileName = `${file.name}.decrypted`;
         }
-        setOperationSuccess(`File "${file.name}" decrypted and decompressed successfully. The downloaded file is named "${outputFileName}".`);
+        setOperationSuccess(`File "${file.name}" decrypted and decompressed successfully as "${outputFileName}".`);
       }
-
+      
       if (resultBuffer) {
         const blob = new Blob([resultBuffer]);
         const url = URL.createObjectURL(blob);
@@ -89,9 +108,8 @@ export default function CryptKeeperForm() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         toast({ title: "Success", description: `File ${operationType === 'encrypt' ? 'encrypted' : 'decrypted'} and download started.` });
-      } else {
-        throw new Error(`File ${operationType} failed.`);
       }
+
     } catch (err: any) {
       console.error(`${operationType} error:`, err);
       const errorMessage = err.message || `An unknown error occurred during ${operationType}.`;
@@ -141,14 +159,14 @@ export default function CryptKeeperForm() {
     <div className="container mx-auto p-4 md:p-8 max-w-3xl space-y-8">
       <header className="text-center space-y-2">
         <div className="flex items-center justify-center space-x-3">
-          <LogoIcon size={48} className="text-primary" suppressHydrationWarning />
+          <ShieldCheck size={48} className="text-primary" suppressHydrationWarning />
           <h1 className="text-4xl font-bold tracking-tight">CryptKeeper</h1>
         </div>
         <p className="text-muted-foreground text-lg">
-          Securely encrypt and decrypt your files with ease.
+          Securely encrypt and decrypt your files with client-side power.
         </p>
       </header>
-
+      
       {operationError && (
         <Alert variant="destructive" className="animate-in fade-in-50">
           <AlertCircle className="h-4 w-4" suppressHydrationWarning />
@@ -157,36 +175,49 @@ export default function CryptKeeperForm() {
         </Alert>
       )}
       {operationSuccess && (
-         <Alert variant="default" className="animate-in fade-in-50 bg-green-500/10 border-green-500/50 text-green-700 dark:text-green-400">
-          <CheckCircle2 className="h-4 w-4 text-green-500" suppressHydrationWarning />
+         <Alert variant="default" className="animate-in fade-in-50 border-accent/50 text-accent dark:text-accent-foreground">
+          <CheckCircle2 className="h-4 w-4 text-accent" suppressHydrationWarning />
           <AlertTitle>Success!</AlertTitle>
           <AlertDescription>{operationSuccess}</AlertDescription>
         </Alert>
       )}
 
-      <Card className="shadow-xl">
+      <Card className="shadow-2xl shadow-primary/10">
         <CardHeader>
           <CardTitle className="text-2xl">File Operation</CardTitle>
-          <CardDescription>Select a file and enter your password to encrypt or decrypt.</CardDescription>
+          <CardDescription>Select a file and enter a password to get started.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="file-upload" className="text-base">Select File</Label>
-            <Input
-              id="file-upload"
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
-            />
+            <Label>Select File</Label>
+            <div
+                onDragOver={(e) => e.preventDefault()}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={cn(
+                    "relative flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200",
+                    isDragging ? "border-primary bg-primary/10" : "border-border hover:border-primary/50 hover:bg-secondary/50"
+                )}
+            >
+                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                    <UploadCloud className={cn("w-10 h-10 mb-3", isDragging ? "text-primary" : "text-muted-foreground")} suppressHydrationWarning/>
+                    <p className="mb-2 text-sm text-muted-foreground">
+                        <span className="font-semibold">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-xs text-muted-foreground">Any file type supported</p>
+                </div>
+                <Input id="file-upload" type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+            </div>
             {file && (
-              <div className="mt-2 text-sm text-muted-foreground flex items-center">
+              <div className="mt-2 text-sm text-muted-foreground flex items-center p-2 rounded-md bg-secondary">
                 <FileText className="w-4 h-4 mr-2 shrink-0" suppressHydrationWarning /> Selected: {file.name} ({(file.size / 1024).toFixed(2)} KB)
               </div>
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-base">Password</Label>
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
@@ -201,7 +232,7 @@ export default function CryptKeeperForm() {
         <CardFooter className="flex flex-col sm:flex-row justify-between gap-4">
           <Button
             onClick={() => handleOperation('encrypt')}
-            disabled={isLoading || !file}
+            disabled={isLoading || !file || !password}
             className="w-full sm:w-auto text-base py-3 px-6"
             size="lg"
           >
@@ -211,7 +242,7 @@ export default function CryptKeeperForm() {
           <Button
             variant="outline"
             onClick={() => handleOperation('decrypt')}
-            disabled={isLoading || !file}
+            disabled={isLoading || !file || !password}
             className="w-full sm:w-auto text-base py-3 px-6"
             size="lg"
           >
@@ -221,7 +252,7 @@ export default function CryptKeeperForm() {
         </CardFooter>
       </Card>
 
-      <Card className="shadow-xl">
+      <Card className="shadow-2xl shadow-primary/10">
         <CardHeader>
           <CardTitle className="text-2xl">AI Key Hardening</CardTitle>
           <CardDescription>Strengthen your password with an AI-generated memorable key.</CardDescription>
@@ -238,11 +269,12 @@ export default function CryptKeeperForm() {
             Suggest Strong Key
           </Button>
           {aiSuggestion && (
-            <div className="mt-4 space-y-4 p-4 border rounded-md bg-secondary/30 animate-in fade-in-50">
+            <div className="mt-4 space-y-4 p-4 border rounded-md bg-gradient-to-tr from-primary/10 via-card to-accent/10 animate-in fade-in-50">
               <div>
                 <Label className="text-sm font-semibold text-muted-foreground">AI Suggested Key:</Label>
                 <div className="flex items-center space-x-2 mt-1">
                   <p className="font-mono text-sm p-2 bg-background rounded-md flex-grow break-all">{aiSuggestion.enhancedKey}</p>
+
                   <Button variant="ghost" size="icon" onClick={() => copyToClipboard(aiSuggestion.enhancedKey)}>
                     <Copy className="h-4 w-4" suppressHydrationWarning />
                   </Button>
@@ -250,9 +282,9 @@ export default function CryptKeeperForm() {
               </div>
               <div>
                 <Label className="text-sm font-semibold text-muted-foreground">Strength Report:</Label>
-                <p className="text-sm mt-1 p-2 bg-background rounded-md whitespace-pre-wrap">{aiSuggestion.strengthReport}</p>
+                <div className="text-sm mt-1 p-3 bg-background rounded-md whitespace-pre-wrap prose prose-sm prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: aiSuggestion.strengthReport.replace(/(\*\*|__)(.*?)\1/g, '<strong>$2</strong>').replace(/\n/g, '<br />') }} />
               </div>
-              <Button onClick={useAiKey} className="w-full mt-2" size="sm">Use This Key</Button>
+              <Button onClick={useAiKey} className="w-full mt-2" size="sm" variant="outline">Use This Key</Button>
             </div>
           )}
         </CardContent>
