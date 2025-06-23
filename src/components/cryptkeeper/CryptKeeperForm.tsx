@@ -100,36 +100,17 @@ export default function CryptKeeperForm() {
       
       if (resultBuffer) {
         const blob = new Blob([resultBuffer]);
-
-        // Use File System Access API if available to allow user to choose save location
-        if ('showSaveFilePicker' in window) {
-          try {
-            const handle = await window.showSaveFilePicker({
-              suggestedName: outputFileName,
-            });
-            const writable = await handle.createWritable();
-            await writable.write(blob);
-            await writable.close();
-            toast({ title: "Success", description: `File saved as "${outputFileName}".` });
-          } catch (err) {
-            // Handle user cancellation (AbortError) gracefully
-            if ((err as DOMException).name !== 'AbortError') {
-              console.error("Save file picker error:", err);
-              toast({ title: "Save Failed", description: "Could not save the file.", variant: "destructive" });
-            }
-          }
-        } else {
-          // Fallback for older browsers
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = outputFileName;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          toast({ title: "Success", description: `File ${operationType === 'encrypt' ? 'encrypted' : 'decrypted'} and download started.` });
-        }
+        
+        // Use a fallback method that works in all environments, including iframes
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = outputFileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: "Success", description: `File ${operationType === 'encrypt' ? 'encrypted' : 'decrypted'} and download started.` });
       }
 
     } catch (err: any) {
