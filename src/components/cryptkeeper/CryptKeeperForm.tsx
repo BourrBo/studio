@@ -16,6 +16,18 @@ import { UploadCloud, Lock, Unlock, Wand2, Copy, Loader2, FileText, AlertCircle,
 import { cn } from '@/lib/utils';
 import CloudStorage from './CloudStorage';
 
+const compareArrayBuffers = (buf1: ArrayBuffer, buf2: ArrayBuffer): boolean => {
+  if (buf1.byteLength !== buf2.byteLength) return false;
+  const view1 = new Uint8Array(buf1);
+  const view2 = new Uint8Array(buf2);
+  for (let i = 0; i < view1.length; i++) {
+    if (view1[i] !== view2[i]) {
+      return false;
+    }
+  }
+  return true;
+};
+
 export default function CryptKeeperForm() {
   const [file, setFile] = useState<File | null>(null);
   const [password, setPassword] = useState<string>('');
@@ -114,7 +126,14 @@ export default function CryptKeeperForm() {
       if (operationType === 'encrypt') {
         resultBuffer = await encryptData(arrayBuffer, password, pako);
         outputFileName = `${file.name}.cptk`;
-        setOperationSuccess(`File "${file.name}" encrypted and compressed successfully as "${outputFileName}".`);
+        
+        // Post-encryption verification to ensure data integrity
+        const decryptedForVerify = await decryptData(resultBuffer, password, pako);
+        if (!compareArrayBuffers(arrayBuffer, decryptedForVerify)) {
+            throw new Error("Post-encryption verification failed. Data integrity could not be guaranteed.");
+        }
+        
+        setOperationSuccess(`File "${file.name}" encrypted and compressed successfully as "${outputFileName}".\nVerification passed: No data loss detected.`);
       } else { // operationType === 'decrypt'
         resultBuffer = await decryptData(arrayBuffer, password, pako);
         if (file.name.toLowerCase().endsWith('.cptk')) {
@@ -122,7 +141,7 @@ export default function CryptKeeperForm() {
         } else {
           outputFileName = `${file.name}.decrypted`;
         }
-        setOperationSuccess(`File "${file.name}" decrypted and decompressed successfully as "${outputFileName}".`);
+        setOperationSuccess(`File "${file.name}" decrypted and decompressed successfully as "${outputFileName}".\nThe file's built-in integrity check passed.`);
       }
       
       if (resultBuffer) {
@@ -226,7 +245,7 @@ export default function CryptKeeperForm() {
          <Alert variant="default" className="animate-in fade-in-50 border-accent/50 text-accent dark:text-accent-foreground">
           <CheckCircle2 className="h-4 w-4 text-accent" suppressHydrationWarning />
           <AlertTitle>Success!</AlertTitle>
-          <AlertDescription>
+          <AlertDescription className="whitespace-pre-line">
             {operationSuccess}
             {originalSize !== null && processedSize !== null && (
               <div className="mt-3 text-foreground/80 border-t border-accent/20 pt-2 space-y-1">
