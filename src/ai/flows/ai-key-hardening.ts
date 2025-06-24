@@ -40,6 +40,9 @@ export type AIKeyHardeningOutput = z.infer<typeof AIKeyHardeningOutputSchema>;
 
 // Exported function to trigger the AI key hardening flow
 export async function aiKeyHardening(input: AIKeyHardeningInput): Promise<AIKeyHardeningOutput> {
+  if (!process.env.GOOGLE_API_KEY && !process.env.GOOGLE_GEMINI_API_KEY) {
+    throw new Error('The AI service is not configured. Please add the GOOGLE_API_KEY to your .env file.');
+  }
   return aiKeyHardeningFlow(input);
 }
 
