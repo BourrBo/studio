@@ -10,8 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { encryptData, decryptData } from '@/lib/crypto';
 import PasswordStrengthMeter from './PasswordStrengthMeter';
-import { aiKeyHardening, type AIKeyHardeningOutput } from '@/ai/flows/ai-key-hardening';
-import { UploadCloud, Lock, Unlock, Wand2, Copy, Loader2, FileText, AlertCircle, CheckCircle2, X } from 'lucide-react';
+import { UploadCloud, Lock, Unlock, Loader2, FileText, AlertCircle, CheckCircle2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CloudStorage from './CloudStorage';
 import FileIntegrityChecker from './FileIntegrityChecker';
@@ -32,9 +31,7 @@ export default function CryptKeeperForm() {
   const [file, setFile] = useState<File | null>(null);
   const [password, setPassword] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [aiSuggestion, setAiSuggestion] = useState<AIKeyHardeningOutput | null>(null);
   const [operationError, setOperationError] = useState<string | null>(null);
   const [operationSuccess, setOperationSuccess] = useState<string | null>(null);
   const [currentYear, setCurrentYear] = useState<number | null>(null);
@@ -170,41 +167,6 @@ export default function CryptKeeperForm() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleAiHardenPassword = async () => {
-    if (!password) {
-      toast({ title: "Password Required", description: "Please enter a base password to harden.", variant: "destructive" });
-      return;
-    }
-    setIsAiLoading(true);
-    setAiSuggestion(null);
-    resetStatus();
-    try {
-      const result = await aiKeyHardening({ password });
-      setAiSuggestion(result);
-      toast({ title: "AI Suggestion Ready", description: "AI has generated a key suggestion." });
-    } catch (err: any) {
-      console.error("AI Key Hardening error:", err);
-      const errorMessage = err.message || "An error occurred while fetching AI suggestions.";
-      setOperationError(errorMessage);
-      toast({ title: "AI Hardening Failed", description: errorMessage, variant: "destructive" });
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
-
-  const useAiKey = () => {
-    if (aiSuggestion?.enhancedKey) {
-      setPassword(aiSuggestion.enhancedKey);
-      toast({ title: "Password Updated", description: "AI suggested key has been applied to the password field." });
-    }
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-      .then(() => toast({ title: "Copied!", description: "Key copied to clipboard." }))
-      .catch(() => toast({ title: "Copy Failed", description: "Could not copy key.", variant: "destructive" }));
   };
 
   const getEncryptedBlob = () => {
@@ -343,44 +305,6 @@ export default function CryptKeeperForm() {
       
       <CloudStorage onFileSelect={handleCloudFileSelect} getEncryptedBlob={getEncryptedBlob} file={file} />
 
-      <Card className="shadow-2xl shadow-primary/10">
-        <CardHeader>
-          <CardTitle className="text-2xl">AI Key Hardening</CardTitle>
-          <CardDescription>Strengthen your password with an AI-generated memorable key.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button
-            variant="secondary"
-            onClick={handleAiHardenPassword}
-            disabled={isAiLoading || !password}
-            className="w-full text-base py-3 px-6"
-            size="lg"
-          >
-            {isAiLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" suppressHydrationWarning /> : <Wand2 className="mr-2 h-5 w-5" suppressHydrationWarning />}
-            Suggest Strong Key
-          </Button>
-          {aiSuggestion && (
-            <div className="mt-4 space-y-4 p-4 border rounded-md bg-gradient-to-tr from-primary/10 via-card to-accent/10 animate-in fade-in-50">
-              <div>
-                <Label className="text-sm font-semibold text-muted-foreground">AI Suggested Key:</Label>
-                <div className="flex items-center space-x-2 mt-1">
-                  <p className="font-mono text-sm p-2 bg-background rounded-md flex-grow break-all">{aiSuggestion.enhancedKey}</p>
-
-                  <Button variant="ghost" size="icon" onClick={() => copyToClipboard(aiSuggestion.enhancedKey)} suppressHydrationWarning>
-                    <Copy className="h-4 w-4" suppressHydrationWarning />
-                  </Button>
-                </div>
-              </div>
-              <div>
-                <Label className="text-sm font-semibold text-muted-foreground">Strength Report:</Label>
-                <div className="text-sm mt-1 p-3 bg-background rounded-md whitespace-pre-wrap prose prose-sm prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: aiSuggestion.strengthReport.replace(/(\*\*|__)(.*?)\1/g, '<strong>$2</strong>').replace(/\n/g, '<br />') }} />
-              </div>
-              <Button onClick={useAiKey} className="w-full mt-2" size="sm" variant="outline">Use This Key</Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      
       <FileIntegrityChecker />
 
       <footer className="text-center text-sm text-muted-foreground mt-12">
